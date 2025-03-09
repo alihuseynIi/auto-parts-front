@@ -3,6 +3,7 @@ import LoginView from "@/views/LoginView.vue";
 import HomeView from "@/views/HomeView.vue";
 import store from '@/store';
 import CartView from "@/views/CartView.vue";
+import OrderView from "@/views/OrderView.vue";
 
 const router = createRouter({
     history: createWebHistory(process.env.BASE_URL),
@@ -24,11 +25,18 @@ const router = createRouter({
             name: 'cart',
             component: CartView,
             meta: { requiresAuth: true }
+        },
+        {
+            path: '/orders',
+            name: 'order',
+            component: OrderView,
+            meta: { requiresAuth: true }
         }
     ]
 });
 
 router.beforeEach(async (to, from, next) => {
+    store.commit('setLoading', true);
     const isLoggedIn = store.getters.isLoggedIn;
 
     if (isLoggedIn && !store.state.userData) {
@@ -53,6 +61,10 @@ router.beforeEach(async (to, from, next) => {
             next();
         }
     }
+});
+
+router.afterEach(() => {
+    store.commit('setLoading', false);
 });
 
 export default router;

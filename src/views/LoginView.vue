@@ -13,19 +13,20 @@
         rounded="lg"
     >
 
-      <div class="text-subtitle-1 text-medium-emphasis">E-poçta</div>
+      <div class="text-subtitle-1 text-medium-emphasis">{{ this.$t("message.email") }}</div>
 
       <v-text-field
           v-model="email"
           :error="hasError"
           density="compact"
-          placeholder="Email address"
+          :placeholder="this.$t('message.enter_email')"
           prepend-inner-icon="mdi-email-outline"
           variant="outlined"
+          @keyup.enter="submitForm"
       ></v-text-field>
 
       <div class="text-subtitle-1 text-medium-emphasis d-flex align-center justify-space-between">
-        Şifrə
+        {{ this.$t("message.password") }}
       </div>
 
       <v-text-field
@@ -34,10 +35,11 @@
           :append-inner-icon="visible ? 'mdi-eye-off' : 'mdi-eye'"
           :type="visible ? 'text' : 'password'"
           density="compact"
-          placeholder="Enter your password"
+          :placeholder="this.$t('message.enter_password')"
           prepend-inner-icon="mdi-lock-outline"
           variant="outlined"
           @click:append-inner="visible = !visible"
+          @keyup.enter="submitForm"
       ></v-text-field>
 
       <v-alert
@@ -49,11 +51,17 @@
         {{ errorMessage }}
       </v-alert>
 
+      <div
+          id="myRecaptcha"
+          data-sitekey="6LeCQu8qAAAAAAIoG35Cku5wlT1bYRcBvpW2rG_-"
+          data-callback="handleCaptchaVerified"
+      ></div>
+
       <v-btn
           @click="submitForm"
           :disabled="isSubmitting"
           :loading="isSubmitting"
-          class="mb-8"
+          class="mb-8 mt-4"
           color="black"
           size="large"
           variant="tonal"
@@ -61,7 +69,7 @@
           block
           type="submit"
       >
-        Daxil ol
+        {{ this.$t("message.sign_in") }}
       </v-btn>
 
     </v-card>
@@ -79,7 +87,9 @@ export default {
     password: '',
     errorMessage: '',
     hasError: false,
-    isSubmitting: false
+    isSubmitting: false,
+    captchaVerified: false,
+    captchaToken: '',
   }),
   computed: {
     isFormValid() {
@@ -88,9 +98,31 @@ export default {
   },
   methods: {
     ...mapActions(['login']),
+
+    renderRecaptcha() {
+      window.grecaptcha.ready(() => {
+        window.grecaptcha.render("myRecaptcha", {
+          sitekey: "6LeCQu8qAAAAAAIoG35Cku5wlT1bYRcBvpW2rG_-",
+          callback: this.handleCaptchaVerified
+        });
+      });
+    },
+    handleCaptchaVerified(token) {
+      this.captchaVerified = true;
+      this.captchaToken = token;
+      console.log('Captcha token: ', token);
+    },
+
     submitForm() {
+      if (this.isSubmitting) return;
+
+      if (!this.captchaToken) {
+        this.errorMessage = this.$t('message.captcha_required');
+        return
+      }
+
       if (!this.isFormValid) {
-        this.errorMessage = "E-poçta ve şifrə boş qoyula bilməz.";
+        this.errorMessage = this.$t('message.email_and_password_required');
         this.hasError = true;
         return;
       }
@@ -100,27 +132,43 @@ export default {
 
       apiClient.post("/login", {
         email: this.email,
-        password: this.password
+        password: this.password,
+        captcha_token: this.captchaToken
       })
           .then(response => {
             this.login(response.data.data.access_token, response.data.data.user_id);
-            this.$router.push({name: 'home'});
-            this.isSubmitting = false;
+            this.$router.push({ name: 'home' });
           })
           .catch(error => {
             console.error('Login error:', error);
-            this.errorMessage = error.response && error.response.data && error.response.data.message
-                ? error.response.data.message
-                : "System Error. Please try again later.";
+            this.errorMessage = this.$t('message.sign_in_error');
             this.hasError = true;
+            this.password = '';
+          })
+          .finally(() => {
             this.isSubmitting = false;
           });
     },
+
     clearErrors() {
       this.hasError = false;
       this.errorMessage = '';
     }
+  },
+  mounted() {
+    if (window.grecaptcha) {
+      this.renderRecaptcha();
+    } else {
+      window.addEventListener('recaptchaLoaded', () => {
+        this.renderRecaptcha();
+      });
+    }
   }
 }
 </script>
-
+<style>
+#myRecaptcha {
+  display: flex;
+  justify-content: center;
+}
+</style>

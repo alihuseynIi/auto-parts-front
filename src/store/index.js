@@ -1,4 +1,4 @@
-import { createStore } from 'vuex';
+import {createStore} from 'vuex';
 import apiClient from "@/services/apiClient";
 import router from "@/router";
 
@@ -15,8 +15,15 @@ export default createStore({
         carModels: [],
         isDisabled: true,
         loadingForCarModel: false,
+        logoutInProgress: false,
+        cartItems: [],
+        cartItemsLoading: false,
+        loading: false
     },
     mutations: {
+        setLoading(state, status) {
+            state.loading = status;
+        },
         setLoginState(state, status) {
             state.isLoggedIn = status;
         },
@@ -42,38 +49,57 @@ export default createStore({
         setLoadingForCarModel(state, status) {
             state.loadingForCarModel = status;
         },
+        setLogoutInProgress(state, status) {
+            state.logoutInProgress = status;
+        },
+        setCartItems(state, items) {
+            state.cartItems = items;
+        },
+        cartItemsLoading(state, status) {
+            state.cartItemsLoading = status;
+        },
     },
     actions: {
-        login({ commit, dispatch }, token) {
+        async login({commit, dispatch}, token) {
             localStorage.setItem('authToken', token);
             commit('setLoginState', true);
-            dispatch('fetchUserData');
+            if (this.state.userData) {
+                await dispatch('fetchUserData');
+            }
         },
-        logout({ commit, state }) {
-            apiClient.post('/logout', {"user_id": state.userData.id})
-                .then(response => {
-                    console.log('Logged out:', response.data);
-                })
-                .catch(error => {
-                    console.error('Logout failed:', error);
-                })
-                .finally(() => {
-                    localStorage.removeItem('authToken');
-                    commit('setLoginState', false);
-                    router.push('/login');
-                });
+        async logout({ commit, state }) {
+            if (state.logoutInProgress) {
+                return;
+            }
+
+            commit('setLogoutInProgress', true);
+
+            try {
+                await apiClient.post('/logout');
+                console.log('Logged out');
+            } catch (error) {
+                console.error('Logout failed:', error);
+            } finally {
+                localStorage.removeItem('authToken');
+                commit('setLoginState', false);
+                commit('setLogoutInProgress', false);
+                router.push('/login');
+            }
         },
-        fetchUserData({ commit, dispatch}) {
-            apiClient.get("users/me")
-                .then(response => {
-                    commit('setUserData', response.data);
-                })
-                .catch(error => {
-                    dispatch('logout');
-                    console.error('Error fetching user data:', error);
-                });
+        async fetchUserData({commit, dispatch}) {
+            commit('setLoading', true);
+            if (this.state.userData) return;
+            try {
+                const response = await apiClient.get("users/me");
+                commit('setUserData', response.data);
+            } catch (error) {
+                dispatch('logout');
+                console.error('Error fetching user data:', error);
+            } finally {
+                commit('setLoading', false);
+            }
         },
-        getCategories({ commit }) {
+        getCategories({commit}) {
             commit('setLoadingCategories', true);
             apiClient.get("/categories")
                 .then(response => {
@@ -85,7 +111,28 @@ export default createStore({
                     commit('setLoadingCategories', false);
                 });
         },
-        getCarModels({ commit }, id) {
+        getCartItems({state, commit}, overlayLoading = false) {
+            if (overlayLoading) {
+                commit('setLoading', true);
+            }
+            commit('cartItemsLoading', true);
+            apiClient.get("/cart/products", {
+                params: {
+                    user_id: state.userData.id,
+                }
+            }).then(res => {
+                commit('setCartItems', res.data.data);
+                commit('updateCartCount', res.data.data.cart_products.length);
+            }).catch(error => {
+                console.error('Error fetching cart items:', error);
+            }).finally(() => {
+                commit('cartItemsLoading', false);
+                if (overlayLoading) {
+                    commit('setLoading', false);
+                }
+            });
+        },
+        getCarModels({commit}, id) {
             commit('setDisabled', true);
             commit('setLoadingForCarModel', true);
             apiClient.get(`/categories/${id}`)
@@ -99,6 +146,20 @@ export default createStore({
                     commit('setDisabled', false);
                     commit('setLoadingForCarModel', false);
                 });
+        },
+        removeProductFromCart({ state, commit, dispatch }, productId) {
+            if (state.cartItemsLoading) return Promise.resolve(); // Prevent multiple calls
+
+            commit('cartItemsLoading', true);
+
+            return apiClient.delete(`/cart/remove`, {
+                params: {
+                    user_id: state.userData.id,
+                    product_id: productId
+                }
+            })
+                .then(() => dispatch('getCartItems')) // Ensure this is returned
+                .finally(() => commit('cartItemsLoading', false));
         }
     },
 
@@ -110,5 +171,8 @@ export default createStore({
         carModels: state => state.carModels,
         isDisabled: state => state.isDisabled,
         loadingForCarModel: state => state.loadingForCarModel,
+        cartItems: state => state.cartItems,
+        cartItemsLoading: state => state.cartItemsLoading,
+        loading: state => state.loading,
     }
 });

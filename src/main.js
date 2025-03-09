@@ -14,6 +14,10 @@ library.add(fas, far);
 
 i18n.global.locale.value = localStorage.getItem('userLocale') || 'AZ';
 
+window.onLoadRecaptcha = () => {
+    window.dispatchEvent(new Event('recaptchaLoaded'));
+};
+
 const app = createApp(App);
 app.component('font-awesome-icon', FontAwesomeIcon);
 app.use(router)

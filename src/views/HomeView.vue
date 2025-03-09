@@ -36,7 +36,7 @@
                     :loading="loadingCategories"
                     v-model="selectedCategories.product_type"
                     :label="$t('message.product_type')"
-                    :items="categories.product_type"
+                    :items="productTypeOptions"
                 ></custom-select>
               </v-col>
 
@@ -45,7 +45,7 @@
                     :loading="loadingCategories"
                     v-model="selectedCategories.brand"
                     :label="$t('message.brand')"
-                    :items="categories.brand"
+                    :items="brandOptions"
                 ></custom-select>
               </v-col>
 
@@ -54,7 +54,7 @@
                     :loading="loadingCategories"
                     v-model="selectedCategories.product_category"
                     :label="$t('message.category')"
-                    :items="categories.product_category"
+                    :items="productCategoryOptions"
                 ></custom-select>
               </v-col>
 
@@ -63,7 +63,7 @@
                     :loading="loadingCategories"
                     v-model="selectedCategories.car_brand"
                     :label="$t('message.car_brand')"
-                    :items="categories.car_brand"
+                    :items="carBrandOptions"
                 ></custom-select>
               </v-col>
 
@@ -73,7 +73,7 @@
                     :disabled="isDisabled"
                     v-model="selectedCategories.car_model"
                     :label="$t('message.car_model')"
-                    :items="carModels.car_model"
+                    :items="carModelOptions"
                 ></custom-select>
               </v-col>
 
@@ -104,7 +104,6 @@
         </v-row>
       </v-container>
 
-
       <v-row>
         <v-col cols="12 pb-0">
           <v-data-table-server
@@ -127,7 +126,9 @@
             </template>
 
             <template v-slot:[`item.discounted_price`]="{item}">
-              {{ item.discounted_price ? item.discounted_price + " ₼" : '-' }}
+              <div>
+                {{ item.discounted_price ? item.discounted_price.toFixed(2) + " ₼" : '-' }}
+              </div>
             </template>
 
             <template v-slot:[`item.stock`]="{ item }">
@@ -138,7 +139,7 @@
             </template>
 
             <template v-slot:[`item.availability`]="{ item }">
-              <td class="m-w-60">
+              <div class="m-w-60">
                 <v-number-input
                     :disabled="item.stock === 0"
                     :min="1"
@@ -148,13 +149,19 @@
                     control-variant="stacked"
                 >
                 </v-number-input>
-              </td>
+              </div>
             </template>
 
             <template v-slot:[`item.price`]="{item}">
-              <td class="price-cell">
-                {{ item.price }} ₼
-              </td>
+              <div class="price-cell">
+                {{ item.price?.toFixed(2) }} ₼
+              </div>
+            </template>
+
+            <template v-slot:[`item.name`]="{item}">
+              <div style="max-width: 200px">
+                {{ item.name }}
+              </div>
             </template>
 
             <template v-slot:[`item.add_to_cart`]="{item}">
@@ -225,11 +232,11 @@ export default {
       slidersLoading: true,
       selectedCategories: {
         query: null,
-        product_type: "Hamısı",
-        brand: "Hamısı",
-        product_category: "Hamısı",
-        car_brand: "Hamısı",
-        car_model: "Hamısı",
+        product_type: null,
+        brand: null,
+        product_category: null,
+        car_brand: null,
+        car_model: null,
         campaign: false,
         new_product: false,
         availability: false
@@ -241,6 +248,7 @@ export default {
         page: 1,
         itemsPerPage: 10
       },
+      tableButtonLoading: false
     };
   },
   components: {
@@ -271,8 +279,8 @@ export default {
     },
     headers() {
       return [
+        {title: this.$t("message.name"), value: 'name', align: 'start'},
         {title: this.$t("message.code"), value: 'code', align: 'center'},
-        {title: this.$t("message.name"), value: 'name', align: 'center'},
         {title: this.$t("message.oem_code"), value: 'oem_code', align: 'center'},
         {title: this.$t("message.car_brand"), value: 'car_brand', align: 'center'},
         {title: this.$t("message.car_model"), value: 'car_model', align: 'center'},
@@ -285,6 +293,24 @@ export default {
         {title: this.$t("message.add_to_cart"), value: 'add_to_cart', align: 'center'}
       ];
     },
+    defaultOption() {
+      return this.$t('message.all');
+    },
+    productTypeOptions() {
+      return [this.defaultOption, ...(this.categories.product_type || [])];
+    },
+    brandOptions() {
+      return [this.defaultOption, ...(this.categories.brand || [])];
+    },
+    productCategoryOptions() {
+      return [this.defaultOption, ...(this.categories.product_category || [])];
+    },
+    carBrandOptions() {
+      return [this.defaultOption, ...(this.categories.car_brand || [])];
+    },
+    carModelOptions() {
+      return [this.defaultOption, ...(this.carModels.car_model || [])];
+    }
   },
   methods: {
     ...mapActions([
@@ -332,6 +358,8 @@ export default {
       }
     },
     addToCart(item) {
+      if (this.tableButtonLoading) return;
+      this.tableButtonLoading = true;
       item.isAddingToCart = true
       apiClient.post('/cart/add', {
         user_id: this.$store.getters.userData.id,
@@ -344,6 +372,7 @@ export default {
         console.error('An error occurred while adding the product to the cart:', error)
       }).finally(() => {
         item.isAddingToCart = false
+        this.tableButtonLoading = false;
       })
     },
     fetchSliders() {
@@ -361,33 +390,51 @@ export default {
           .finally(() => {
             this.slidersLoading = false;
           });
-    }
-
+    },
+    resetDefaultSelections() {
+      const defaultVal = this.defaultOption;
+      this.selectedCategories.product_type = defaultVal;
+      this.selectedCategories.brand = defaultVal;
+      this.selectedCategories.product_category = defaultVal;
+      this.selectedCategories.car_brand = defaultVal;
+      this.selectedCategories.car_model = defaultVal;
+    },
   },
   watch: {
-    currentLocale(newLocale) {
-      this.$i18n.locale = newLocale;
-      localStorage.setItem('userLocale', newLocale);
+    defaultOption(newVal, oldVal) {
+      // Dil değişikliğinde yalnızca select alanlarını güncelle
+      const selectFields = [
+        'product_type',
+        'brand',
+        'product_category',
+        'car_brand',
+        'car_model'
+      ];
+
+      selectFields.forEach(key => {
+        if (this.selectedCategories[key] === oldVal || this.selectedCategories[key] === null) {
+          this.selectedCategories[key] = newVal;
+        }
+      });
     },
-    "selectedCategories.car_brand"(newData) {
-      this.selectedCategories.car_model = "Hamısı"
-      this.getCarModels(newData);
+    "selectedCategories.car_brand"(newData, oldData) {
+      if(newData !== oldData && newData !== this.defaultOption){
+        this.selectedCategories.car_model = this.defaultOption;
+        this.getCarModels(newData);
+      } else if(newData === this.defaultOption) {
+        this.carModels.car_model = [];
+        this.selectedCategories.car_model = this.defaultOption;
+      }
     },
     'pagination.page'() {
       this.handleSearch();
     },
-    userData: {
-      deep: true,
-      immediate: true,
-      handler(newData) {
-        if (newData && newData.id) {
-          this.fetchSliders();
-        }
-      }
-    }
   },
+
   mounted() {
     this.getCategories();
+    this.fetchSliders();
+    this.resetDefaultSelections();
   }
 };
 </script>
@@ -474,21 +521,14 @@ a {
 }
 
 .cart-icon {
-  color: white;
-  font-size: 16px;
+  color: #eb0f2a;
+  font-size: 25px;
   cursor: pointer;
-  background: #eb0f2a;
-  padding: 8px;
   border-radius: 4px;
   transition: 500ms;
 }
 
-.cart-icon:hover {
-  background: #c70a22;
-  transition: 500ms;
-}
-
-.search-table .v-data-table-footer__items-per-page {
+.v-data-table-footer__items-per-page {
   display: none;
 }
 

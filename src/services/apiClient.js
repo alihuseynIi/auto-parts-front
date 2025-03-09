@@ -29,7 +29,7 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
     response => response,
     error => {
-        if (error.response && error.response.status === 401) {
+        if (error.response && error.response.status === 401 && !store.state.logoutInProgress) {
             store.dispatch('logout').then(() => {
                 router.push('/login').catch(err => {
                     console.error('Router redirect error:', err);

@@ -45,12 +45,12 @@
         <v-col cols="7" sm="9" class="d-inline-block lang-select m-none">
           <ul>
             <li>
-              <a class="customer-bag" href="#">
+              <router-link class="customer-bag" to="/cart">
                 <font-awesome-icon :icon="['fas', 'cart-shopping']"/>
                 <small>
                   {{ cartCount }}
                 </small>
-              </a>
+              </router-link>
             </li>
             <li>
               <v-select
@@ -87,7 +87,7 @@
                 </router-link>
               </li>
               <li>
-                <router-link to="/">
+                <router-link to="/orders">
                   {{ $t('message.orders') }}
                 </router-link>
               </li>
@@ -125,12 +125,12 @@
           </v-col>
 
           <v-col cols="3" class="d-flex justify-end">
-            <a class="customer-bag mobile-cart" href="#">
+            <router-link class="customer-bag mobile-cart" to="/cart">
               <font-awesome-icon :icon="['fas', 'cart-shopping']"/>
               <small>
                 {{ cartCount }}
               </small>
-            </a>
+            </router-link>
           </v-col>
         </v-row>
       </v-container>
