@@ -8,6 +8,7 @@ function getToken() {
 
 export default createStore({
     state: {
+        url: "http://127.0.0.1:8000/storage/",
         isLoggedIn: !!getToken(),
         userData: null,
         categories: [],
@@ -164,6 +165,7 @@ export default createStore({
     },
 
     getters: {
+        url: state => state.url,
         isLoggedIn: state => state.isLoggedIn,
         userData: state => state.userData,
         categories: state => state.categories,

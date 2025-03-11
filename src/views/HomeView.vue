@@ -224,7 +224,6 @@ export default {
   name: 'HomeView',
   data() {
     return {
-      url: "http://127.0.0.1:8000/storage/",
       isModalOpen: false,
       imageUrl: '',
       addedToCart: false,
@@ -261,6 +260,9 @@ export default {
   computed: {
     categories() {
       return this.$store.getters.categories;
+    },
+    url() {
+      return this.$store.getters.url;
     },
     loadingCategories() {
       return this.$store.getters.loadingCategories;

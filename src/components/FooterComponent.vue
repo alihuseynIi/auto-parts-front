@@ -3,11 +3,10 @@
     <v-container class="brand-slider">
       <v-row>
         <v-col cols="12">
-          <SliderComponent :images="imageList"/>
+          <SliderComponent :images="brand_sliders"/>
         </v-col>
       </v-row>
     </v-container>
-
     <footer class="footer">
       <v-container>
         <v-row>
@@ -24,22 +23,37 @@
 
 <script>
 import SliderComponent from "@/components/SliderComponent.vue";
+import apiClient from "@/services/apiClient";
 
 export default {
   name: "FooterComponent",
   components: {SliderComponent},
   data() {
     return {
-      imageList: [
-        "https://s3-us-west-2.amazonaws.com/s.cdpn.io/557257/1.png",
-        "https://s3-us-west-2.amazonaws.com/s.cdpn.io/557257/2.png",
-        "https://s3-us-west-2.amazonaws.com/s.cdpn.io/557257/3.png",
-        "https://s3-us-west-2.amazonaws.com/s.cdpn.io/557257/4.png",
-        "https://s3-us-west-2.amazonaws.com/s.cdpn.io/557257/5.png",
-        "https://s3-us-west-2.amazonaws.com/s.cdpn.io/557257/6.png",
-        "https://s3-us-west-2.amazonaws.com/s.cdpn.io/557257/7.png",
-      ],
+      brand_sliders: [],
+      slidersLoading: true,
     }
+  },
+  methods: {
+    fetchBrandSliders() {
+      this.slidersLoading = true;
+
+      apiClient.get('/brand-sliders', {
+        params: {user_id: this.$store.getters.userData.id}
+      })
+          .then(response => {
+            this.brand_sliders = response.data.data;
+          })
+          .catch(error => {
+            console.error('An error occurred while fetching brand-sliders.:', error);
+          })
+          .finally(() => {
+            this.slidersLoading = false;
+          });
+    },
+  },
+  mounted() {
+    this.fetchBrandSliders();
   }
 }
 </script>

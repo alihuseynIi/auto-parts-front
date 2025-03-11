@@ -2,10 +2,10 @@
   <div class="slider">
     <div class="slide-track">
       <div v-for="(image, index) in images" :key="index" class="slide">
-        <img :src="image" height="100" width="250" alt="Slider Image" />
+        <img :src="this.url + image" height="100" width="250" alt="Slider Image" />
       </div>
       <div v-for="(image, index) in images" :key="'repeat-' + index" class="slide">
-        <img :src="image" height="100" width="250" alt="Slider Image" />
+        <img :src="this.url + image" height="100" width="250" alt="Slider Image" />
       </div>
     </div>
   </div>
@@ -17,6 +17,11 @@ export default {
     images: {
       type: Array,
       required: true,
+    },
+  },
+  computed: {
+    url() {
+      return this.$store.getters.url;
     },
   },
 };
