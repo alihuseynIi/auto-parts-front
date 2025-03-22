@@ -8,7 +8,7 @@ function getToken() {
 
 export default createStore({
     state: {
-        url: "http://127.0.0.1:8000/storage/",
+        url: "https://backend.auto555.az/storage/",
         isLoggedIn: !!getToken(),
         userData: null,
         categories: [],

@@ -7,7 +7,7 @@ function getToken() {
 }
 
 const apiClient = axios.create({
-    baseURL: 'http://127.0.0.1:8000/api/',
+    baseURL: 'https://backend.auto555.az/api/',
     headers: {
         'Content-Type': 'application/json'
     }
