@@ -53,7 +53,7 @@
 
       <div
           id="myRecaptcha"
-          data-sitekey="6Ldw5_4qAAAAAEEbfCh6LYHKyacqU-mlowGQvIVe"
+          data-sitekey="6LdA7P4qAAAAAD0GgK_zyal2L3jWRi54wplxKUR0"
           data-callback="handleCaptchaVerified"
       ></div>
 
@@ -102,7 +102,7 @@ export default {
     renderRecaptcha() {
       window.grecaptcha.ready(() => {
         window.grecaptcha.render("myRecaptcha", {
-          sitekey: "6Ldw5_4qAAAAAEEbfCh6LYHKyacqU-mlowGQvIVe",
+          sitekey: "6LdA7P4qAAAAAD0GgK_zyal2L3jWRi54wplxKUR0",
           callback: this.handleCaptchaVerified
         });
       });
