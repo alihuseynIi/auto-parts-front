@@ -51,11 +51,7 @@
         {{ errorMessage }}
       </v-alert>
 
-      <div
-          id="myRecaptcha"
-          data-sitekey="6LdA7P4qAAAAAD0GgK_zyal2L3jWRi54wplxKUR0"
-          data-callback="handleCaptchaVerified"
-      ></div>
+      <div id="myRecaptcha"></div>
 
       <v-btn
           @click="submitForm"
@@ -88,7 +84,6 @@ export default {
     errorMessage: '',
     hasError: false,
     isSubmitting: false,
-    captchaVerified: false,
     captchaToken: '',
   }),
   computed: {
@@ -99,18 +94,8 @@ export default {
   methods: {
     ...mapActions(['login']),
 
-    renderRecaptcha() {
-      window.grecaptcha.ready(() => {
-        window.grecaptcha.render("myRecaptcha", {
-          sitekey: "6LdA7P4qAAAAAD0GgK_zyal2L3jWRi54wplxKUR0",
-          callback: this.handleCaptchaVerified
-        });
-      });
-    },
     handleCaptchaVerified(token) {
-      this.captchaVerified = true;
       this.captchaToken = token;
-      console.log('Captcha token: ', token);
     },
 
     submitForm() {
@@ -156,14 +141,13 @@ export default {
     }
   },
   mounted() {
-    if (window.grecaptcha) {
-      this.renderRecaptcha();
-    } else {
-      window.addEventListener('recaptchaLoaded', () => {
-        this.renderRecaptcha();
+    if (window.grecaptcha && window.grecaptcha.enterprise) {
+      window.grecaptcha.enterprise.render("myRecaptcha", {
+        sitekey: "6LdA7P4qAAAAAD0GgK_zyal2L3jWRi54wplxKUR0",
+        callback: this.handleCaptchaVerified
       });
     }
-  }
+  },
 }
 </script>
 <style>
