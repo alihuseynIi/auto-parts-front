@@ -141,12 +141,15 @@ export default {
     }
   },
   mounted() {
-    if (window.grecaptcha && window.grecaptcha.enterprise) {
-      window.grecaptcha.enterprise.render("myRecaptcha", {
-        sitekey: "6LdA7P4qAAAAAD0GgK_zyal2L3jWRi54wplxKUR0",
-        callback: this.handleCaptchaVerified
-      });
-    }
+    const intervalId = setInterval(() => {
+      if (window.grecaptcha && window.grecaptcha.enterprise) {
+        window.grecaptcha.enterprise.render("myRecaptcha", {
+          sitekey: "6LdA7P4qAAAAAD0GgK_zyal2L3jWRi54wplxKUR0",
+          callback: this.handleCaptchaVerified
+        });
+        clearInterval(intervalId);
+      }
+    }, 100);
   },
 }
 </script>
