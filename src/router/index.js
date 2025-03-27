@@ -18,19 +18,19 @@ const router = createRouter({
             path: '/login',
             name: 'login',
             component: LoginView,
-            meta: { guestOnly: true }
+            meta: { guestOnly: true, title: 'Login' }
         },
         {
             path: '/cart',
             name: 'cart',
             component: CartView,
-            meta: { requiresAuth: true }
+            meta: { requiresAuth: true, title: 'Cart' }
         },
         {
             path: '/orders',
             name: 'order',
             component: OrderView,
-            meta: { requiresAuth: true }
+            meta: { requiresAuth: true, title: 'Orders' }
         }
     ]
 });
@@ -62,6 +62,14 @@ router.beforeEach(async (to, from, next) => {
         }
     }
 });
+
+router.beforeEach((to, from, next) => {
+    document.title = to.meta.title
+        ? `Auto555.az | ${to.meta.title}`
+        : "Auto555.az";
+    next();
+});
+
 
 router.afterEach(() => {
     store.commit('setLoading', false);

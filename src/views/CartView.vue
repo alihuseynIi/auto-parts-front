@@ -182,6 +182,10 @@
     <v-snackbar timeout="2000" color="error" v-model="toaster">
       {{ $t('message.product_deleted_from_cart') }}
     </v-snackbar>
+
+    <v-snackbar timeout="5000" color="error" v-model="toasterError">
+      {{ $t('message.error') }}
+    </v-snackbar>
   </div>
 </template>
 
@@ -207,6 +211,7 @@ export default {
       warningModal: false,
       successModal: false,
       disabledInput: false,
+      toasterError: false
     };
   },
   computed: {
@@ -277,6 +282,8 @@ export default {
         if (error.status === 409) {
           this.getCartItems()
           this.warningModal = true
+        } else {
+          this.toasterError = true;
         }
         console.error('An error occurred while order the products:', error)
       }).finally(() => {

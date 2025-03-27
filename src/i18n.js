@@ -64,7 +64,8 @@ const messages = {
             enter_email: 'E-poçtanızı daxil edin',
             email_and_password_required: 'E-poçta və şifrə boş qoyula bilməz',
             sign_in_error: 'E-poçta və ya şifrə yanlışdır',
-            captcha_required: "Zəhmət olmasa reCAPTCHA-nı təsdiqləyin"
+            captcha_required: "Zəhmət olmasa reCAPTCHA-nı təsdiqləyin",
+            error: "Xəta baş verdi. Sonra yenidən cəhd edin"
         }
     },
     RU: {
@@ -129,7 +130,8 @@ const messages = {
             enter_email: 'Введите ваш e-почта',
             email_and_password_required: 'Поле электронной почты и пароль не может быть пустым.',
             sign_in_error: 'Неверный адрес электронной почты или пароль.',
-            captcha_required: "Пожалуйста, подтвердите reCAPTCHA"
+            captcha_required: "Пожалуйста, подтвердите reCAPTCHA",
+            error: "Произошла ошибка. Попробуйте еще раз позже"
         }
     }};
 
