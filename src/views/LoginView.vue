@@ -77,6 +77,7 @@ import apiClient from '@/services/apiClient.js';
 import { mapActions } from 'vuex';
 
 export default {
+  name: 'HomeView',
   data: () => ({
     visible: false,
     email: '',

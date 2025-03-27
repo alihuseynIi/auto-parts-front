@@ -198,6 +198,7 @@ import CustomSelect from "@/components/CustomSelect.vue";
 import apiClient from "@/services/apiClient";
 
 export default {
+  name: 'CartView',
   components: {CustomSelect, VNumberInput, FooterComponent, HeaderComponent},
   data() {
     return {
